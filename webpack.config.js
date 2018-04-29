@@ -1,32 +1,25 @@
 const path = require('path');
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = function () {
     var config = {};
 
     config.entry = {
-        main: './src/index.js'
+        main: './example/index.js'
     };
 
     config.output = {
         path: __dirname + '/dist',
-        filename: 'react-plotting.js',
-        //publicPath: '/',
-        libraryTarget: 'commonjs2'
-    };
-
-    let babelLoader = {
-        loader: 'babel-loader', options: {
-            presets: ['es2015-ie', 'react'],
-            plugins: ["transform-object-rest-spread"]
-        }
+        filename: 'index.js',
+        publicPath: '/'
     };
 
     config.module = {
         rules: [
             {
                 test: /\.jsx?$/,
-                use: [babelLoader],
+                use: 'babel-loader',
                 exclude: /node_modules/,
 
             }
@@ -34,13 +27,20 @@ module.exports = function () {
     };
 
     config.plugins = [
+        new HtmlWebpackPlugin({
+            template: './example/index.html',
+            inject: 'body'
+        }),
         new webpack.SourceMapDevToolPlugin({
             filename: '[file].map'
         })
     ];
 
-    config.externals = {
-        'react': 'commonjs react' // this line is just to use the React dependency of our parent-testing-project instead of using our own React.
+    config.devServer = {
+        stats: 'minimal',
+        inline: true,
+        publicPath: '/',
+        port: 8083
     };
 
     return config;

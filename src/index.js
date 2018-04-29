@@ -1,3 +1,3 @@
-import Test from './Test.jsx';
+import ReactPlotting from './ReactPlotting.jsx';
 
-module.exports = Test;
+module.exports = ReactPlotting;
