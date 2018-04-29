@@ -20,16 +20,17 @@ export const calculateCenterPosition = (outerContainer, container) => {
     }
 };
 
-export const calculateScaledPosition = (rect, scale) => {
-    let applyScaleToPos = (pos, dim) => {
-        return pos - ((dim * scale) - dim) / 2;
+export const calculateScaledPosition = (outerContainer, rect, scale) => {
+    let applyScaleToPos = (zoomAt, pos, dim) => {
+        //let dimScale = ((dim * scale) - dim) / 2;
+        return zoomAt - (zoomAt - pos) * scale;
     };
     let applyScaleToDim = (dim) => {
         return dim * scale;
     };
     return {
-        x: applyScaleToPos(rect.x, rect.width),
-        y: applyScaleToPos(rect.y, rect.height),
+        x: applyScaleToPos(outerContainer.width / 2, rect.x, rect.width),
+        y: applyScaleToPos(outerContainer.height / 2, rect.y, rect.height),
         width: applyScaleToDim(rect.width),
         height: applyScaleToDim(rect.height)
     };

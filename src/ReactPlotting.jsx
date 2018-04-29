@@ -59,30 +59,16 @@ export default class ReactPlotting extends React.Component {
                 imageRect.x += this.state.displacement.x;
                 imageRect.y += this.state.displacement.y;
 
-                let scaledImageRect = calculateScaledPosition(imageRect, this.state.scale);
+                let scaledImageRect = calculateScaledPosition(canvasDimensions, imageRect, this.state.scale);
                 ctx.drawImage(this.state.image.image,
                     scaledImageRect.x,
                     scaledImageRect.y,
                     scaledImageRect.width,
                     scaledImageRect.height);
+
+                ctx.strokeStyle = "red";
+                ctx.strokeRect(canvasDimensions.width / 2 - 2, canvasDimensions.height / 2 - 2, 4, 4);
             }
-        }
-    }
-    componentDidUpdate() {
-        if (!this.state.image.loaded) {
-            this.loadImage();
-        }
-        this.updateCanvas();
-    }
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.imageUrl != this.state.image.url) {
-            this.setState({
-                image: {
-                    loaded: false,
-                    image: null,
-                    url: nextProps.imageUrl
-                }
-            });
         }
     }
 
@@ -129,6 +115,50 @@ export default class ReactPlotting extends React.Component {
         this.canvasRef.current.addEventListener('mouseleave', this.mouseUp);
         this.canvasRef.current.removeEventListener('mousedown', this.mouseDown);
     }
+
+    componentDidUpdate() {
+        if (!this.state.image.loaded) {
+            this.loadImage();
+        }
+        this.updateCanvas();
+    }
+
+    componentWillReceiveProps(nextProps) {
+        let nextState = { ...this.state };
+        if (nextProps.imageUrl && nextProps.imageUrl != this.state.image.url) {
+            nextState.image = {
+                loaded: false,
+                image: null,
+                url: nextProps.imageUrl
+            };
+            nextState.displacement = { x: 0, y: 0 };
+        } else if (nextState.image.loaded) {
+            let calculateProportionalDisplacement = (currDisplacement, currDim, nextDim) => {
+                if (!currDim || !nextDim) {
+                    return currDisplacement;
+                }
+                return (nextDim / currDim) * currDisplacement;
+            };
+
+            let imageDimensions = {
+                width: this.state.image.image.width,
+                height: this.state.image.image.height
+            };
+            let imageRect = calculateCenterPosition({ width: this.props.width, height: this.props.height },
+                imageDimensions);
+            let newImageRect = calculateCenterPosition({ width: nextProps.width, height: nextProps.height },
+                imageDimensions);
+
+            if (newImageRect.width != imageRect.width) {
+                nextState.displacement.x = calculateProportionalDisplacement(this.state.displacement.x, imageRect.width, newImageRect.width);
+            }
+            if (newImageRect.height != imageRect.height) {
+                nextState.displacement.y = calculateProportionalDisplacement(this.state.displacement.y, imageRect.height, newImageRect.height);
+            }
+        }
+        this.setState(nextState);
+    }
+
     render() {
         return <canvas style={{ display: 'block' }} ref={this.canvasRef}></canvas>;
     }
