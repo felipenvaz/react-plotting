@@ -1,11 +1,11 @@
 {
   "name": "react-plotting",
-  "version": "0.1.8",
+  "version": "0.1.10",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "build": "webpack",
-    "prepublish": "npm run transpile",
+    "prepublishOnly": "npm run transpile",
     "transpile": "babel src -d dist --copy-files",
     "dev-server": "webpack-dev-server --history-api-fallback --progress"
   },
