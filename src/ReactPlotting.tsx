@@ -1,10 +1,11 @@
-import 'core-js/es6/map';
-import 'core-js/es6/set';
-
-import React from 'react';
+import * as React from 'react';
 import { calculateCenterPosition, calculateScaledPosition } from './calcUtils.js';
+import { IMouseEvents, IPosition, IReactPlottingProps, IReactPlottingState } from './types';
 
-export default class ReactPlotting extends React.Component {
+export default class ReactPlotting extends React.Component<IReactPlottingProps, IReactPlottingState> {
+    canvasRef: HTMLCanvasElement;
+    mouseEvents: IMouseEvents;
+
     constructor(props) {
         super(props);
         this.handleWheel = this.handleWheel.bind(this);
@@ -12,7 +13,6 @@ export default class ReactPlotting extends React.Component {
         this.mouseUp = this.mouseUp.bind(this);
         this.mouseDown = this.mouseDown.bind(this);
 
-        this.canvasRef = React.createRef();
         this.state = {
             image: {
                 loaded: false,
@@ -42,8 +42,8 @@ export default class ReactPlotting extends React.Component {
     }
 
     updateCanvas() {
-        if (this.canvasRef.current) {
-            let canvas = this.canvasRef.current;
+        if (this.canvasRef) {
+            let canvas = this.canvasRef;
             let canvasDimensions = { width: this.props.width, height: this.props.height };
             canvas.height = canvasDimensions.height;
             canvas.width = canvasDimensions.width;
@@ -102,18 +102,18 @@ export default class ReactPlotting extends React.Component {
 
     componentDidMount() {
         window.addEventListener('wheel', this.handleWheel);
-        this.canvasRef.current.addEventListener('mousemove', this.mouseMove);
-        this.canvasRef.current.addEventListener('mouseup', this.mouseUp);
-        this.canvasRef.current.addEventListener('mouseleave', this.mouseUp);
-        this.canvasRef.current.addEventListener('mousedown', this.mouseDown);
+        this.canvasRef.addEventListener('mousemove', this.mouseMove);
+        this.canvasRef.addEventListener('mouseup', this.mouseUp);
+        this.canvasRef.addEventListener('mouseleave', this.mouseUp);
+        this.canvasRef.addEventListener('mousedown', this.mouseDown);
     }
 
     componentWillUnmount() {
         window.removeEventListener('wheel', this.handleWheel);
-        this.canvasRef.current.removeEventListener('mousemove', this.mouseMove);
-        this.canvasRef.current.removeEventListener('mouseup', this.mouseUp);
-        this.canvasRef.current.addEventListener('mouseleave', this.mouseUp);
-        this.canvasRef.current.removeEventListener('mousedown', this.mouseDown);
+        this.canvasRef.removeEventListener('mousemove', this.mouseMove);
+        this.canvasRef.removeEventListener('mouseup', this.mouseUp);
+        this.canvasRef.addEventListener('mouseleave', this.mouseUp);
+        this.canvasRef.removeEventListener('mousedown', this.mouseDown);
     }
 
     componentDidUpdate() {
@@ -160,6 +160,6 @@ export default class ReactPlotting extends React.Component {
     }
 
     render() {
-        return <canvas style={{ display: 'block' }} ref={this.canvasRef}></canvas>;
+        return <canvas style={{ display: 'block' }} ref={(canvas) => { this.canvasRef = canvas; }}></canvas>;
     }
 }

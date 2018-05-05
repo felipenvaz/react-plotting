@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 import "babel-polyfill";
 import Measure from 'react-measure'
 
-import ReactPlotting from './../src/ReactPlotting.jsx';
+import ReactPlotting from './../src/ReactPlotting';
 
 let style = {
     height: '100%',

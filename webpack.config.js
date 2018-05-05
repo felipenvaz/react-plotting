@@ -11,17 +11,21 @@ module.exports = function () {
 
     config.output = {
         path: __dirname + '/dist',
-        filename: 'index.js',
+        filename: '[name].js',
         publicPath: '/'
     };
 
     config.module = {
         rules: [
             {
+                test: /\.tsx?$/,
+                use: ['babel-loader', 'ts-loader'],
+                exclude: /node_modules/
+            },
+            {
                 test: /\.jsx?$/,
-                use: 'babel-loader',
-                exclude: /node_modules/,
-
+                use: ['babel-loader'],
+                exclude: /node_modules/
             }
         ]
     };
@@ -41,6 +45,11 @@ module.exports = function () {
         inline: true,
         publicPath: '/',
         port: 8083
+    };
+
+    config.resolve = {
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        mainFiles: ['index']
     };
 
     return config;

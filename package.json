@@ -1,12 +1,12 @@
 {
   "name": "react-plotting",
-  "version": "0.1.10",
+  "version": "0.1.12",
   "description": "",
-  "main": "dist/index.js",
+  "main": "./dist/ReactPlotting.js",
+  "types": "./dist/ReactPlotting.d.ts",
   "scripts": {
-    "build": "webpack",
-    "prepublishOnly": "npm run transpile",
-    "transpile": "babel src -d dist --copy-files",
+    "build": "webpack --config ./webpack.config.prod.js",
+    "prepublishOnly": "npm run build",
     "dev-server": "webpack-dev-server --history-api-fallback --progress"
   },
   "repository": {
@@ -25,7 +25,8 @@
     "react-dom": "^16.3.2"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
+    "@types/react": "^16.3.13",
+    "@types/react-dom": "^16.0.5",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
@@ -39,6 +40,11 @@
     "react-dom": "^16.3.2",
     "react-measure": "^2.0.2",
     "webpack": "^3.10.0",
-    "webpack-dev-server": "^2.11.1"
+    "webpack-dev-server": "^2.11.1",
+    "webpack-cleanup-plugin": "^0.5.1",
+    "webpack-bundle-analyzer": "^2.11.1",
+    "typescript": "^2.8.3",
+    "ts-loader": "^3",
+    "tslint": "^5.9.1"
   }
 }

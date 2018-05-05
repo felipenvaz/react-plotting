@@ -1,3 +1,3 @@
-import ReactPlotting from './ReactPlotting.jsx';
+import ReactPlotting from './ReactPlotting';
 
 module.exports = ReactPlotting;
