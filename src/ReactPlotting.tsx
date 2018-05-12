@@ -1,10 +1,23 @@
 import * as React from 'react';
 import { calculateCenterPosition, calculateScaledPosition } from './calcUtils.js';
-import { IMouseEvents, IPosition, IReactPlottingProps, IReactPlottingState } from './types';
+import { MouseEvents, Position, Element, IImageHash, IImage } from './types';
+
+export interface IReactPlottingProps {
+    width: number;
+    height: number;
+    imageUrl: string;
+    elements?: Array<Element>;
+}
+
+export interface IReactPlottingState {
+    scale: number;
+    displacement: Position;
+    images: IImageHash;
+}
 
 export default class ReactPlotting extends React.Component<IReactPlottingProps, IReactPlottingState> {
     canvasRef: HTMLCanvasElement;
-    mouseEvents: IMouseEvents;
+    mouseEvents: MouseEvents;
 
     constructor(props) {
         super(props);
@@ -14,17 +27,19 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
         this.mouseDown = this.mouseDown.bind(this);
 
         this.state = {
-            image: {
-                loaded: false,
-                image: null,
-                url: props.imageUrl
-            },
+            images: {},
             scale: 1,
             displacement: {
                 x: 0,
                 y: 0,
             }
         };
+        if (props.imageUrl) {
+            this.state.images[props.imageUrl] = {
+                url: props.imageUrl
+            };
+        }
+
         this.mouseEvents = {
             isDown: false,
             previousPos: {
@@ -33,12 +48,43 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
             }
         };
     }
-    loadImage() {
+
+    setImage(image: IImage) {
+        image.loading = true;
         var img = new Image();
         img.onload = () => {
-            this.setState({ image: { ...this.state.image, image: img, loaded: true } });
+            this.setState((prevState) => {
+                let newState = { images: { ...prevState.images } };
+                newState.images[image.url].loaded = true;
+                newState.images[image.url].loading = false;
+                return newState;
+            });
         };
-        img.src = this.state.image.url;
+        img.onerror = () => {
+            this.setState((prevState) => {
+                let newState = { images: { ...prevState.images } };
+                newState.images[image.url].loaded = false;
+                newState.images[image.url].loading = false;
+                return newState;
+            });
+        };
+        img.src = image.url;
+        image.image = img;
+    }
+
+    loadImages() {
+        this.setState((prevState) => {
+            let stateShouldChange = false;
+            let newState = { images: { ...prevState.images } };
+            for (let key in newState.images) {
+                let image = newState.images[key];
+                if (image.loaded === undefined && !image.loading) {
+                    stateShouldChange = true;
+                    this.setImage(image);
+                }
+            }
+            return stateShouldChange ? newState : null;
+        });
     }
 
     updateCanvas() {
@@ -50,40 +96,53 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (this.state.image.loaded) {
+            if (this.state.images[this.props.imageUrl] && this.state.images[this.props.imageUrl].loaded) {
+                let mainImage = this.state.images[this.props.imageUrl];
                 let imageDimensions = {
-                    width: this.state.image.image.width,
-                    height: this.state.image.image.height
+                    width: mainImage.image.width,
+                    height: mainImage.image.height
                 };
                 let imageRect = calculateCenterPosition(canvasDimensions, imageDimensions);
                 imageRect.x += this.state.displacement.x;
                 imageRect.y += this.state.displacement.y;
 
                 let scaledImageRect = calculateScaledPosition(canvasDimensions, imageRect, this.state.scale);
-                ctx.drawImage(this.state.image.image,
+                ctx.drawImage(mainImage.image,
                     scaledImageRect.x,
                     scaledImageRect.y,
                     scaledImageRect.width,
                     scaledImageRect.height);
 
-                ctx.strokeStyle = "red";
-                ctx.strokeRect(canvasDimensions.width / 2 - 2, canvasDimensions.height / 2 - 2, 4, 4);
+                this.renderElements();
+                /* ctx.strokeStyle = "red";
+                ctx.strokeRect(canvasDimensions.width / 2 - 2, canvasDimensions.height / 2 - 2, 4, 4); */
             }
         }
     }
 
+    renderElements() {
+        if (this.props.elements) {
+            //how to calculate the position? answer: relative to the image, as if the image would be plotted with its original size
+            //if the screen size changes, the position would be wrong
+        }
+    }
+
     handleWheel(event) {
-        this.setState({ scale: this.state.scale * (1 - event.deltaY / 1000) });
+        this.setState((prevState) => {
+            return { scale: prevState.scale * (1 - event.deltaY / 1000) }
+        });
     }
 
     mouseMove(event) {
         if (this.mouseEvents.isDown) {
             let diffX = event.x - this.mouseEvents.previousPos.x;
             let diffY = event.y - this.mouseEvents.previousPos.y;
-            this.setState({
-                displacement: {
-                    x: this.state.displacement.x + diffX / this.state.scale,
-                    y: this.state.displacement.y + diffY / this.state.scale
+            this.setState((prevState) => {
+                return {
+                    displacement: {
+                        x: prevState.displacement.x + diffX / prevState.scale,
+                        y: prevState.displacement.y + diffY / prevState.scale
+                    }
                 }
             });
             this.mouseEvents.previousPos = { x: event.x, y: event.y };
@@ -117,22 +176,19 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
     }
 
     componentDidUpdate() {
-        if (!this.state.image.loaded) {
-            this.loadImage();
-        }
+        this.loadImages();
         this.updateCanvas();
     }
 
     componentWillReceiveProps(nextProps) {
         let nextState = { ...this.state };
-        if (nextProps.imageUrl && nextProps.imageUrl != this.state.image.url) {
-            nextState.image = {
-                loaded: false,
-                image: null,
-                url: nextProps.imageUrl
-            };
-            nextState.displacement = { x: 0, y: 0 };
-        } else if (nextState.image.loaded) {
+        if (nextProps.imageUrl != this.props.imageUrl) {
+            if (nextState.images[nextProps.imageUrl] === undefined) {
+                nextState.images[nextProps.imageUrl] = {
+                    url: nextProps.imageUrl
+                };
+            }
+        } else if (this.state.images[nextProps.imageUrl] && this.state.images[nextProps.imageUrl].loaded) {
             let calculateProportionalDisplacement = (currDisplacement, currDim, nextDim) => {
                 if (!currDim || !nextDim) {
                     return currDisplacement;
@@ -140,9 +196,10 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
                 return (nextDim / currDim) * currDisplacement;
             };
 
+            let mainImage = this.state.images[nextProps.imageUrl];
             let imageDimensions = {
-                width: this.state.image.image.width,
-                height: this.state.image.image.height
+                width: mainImage.image.width,
+                height: mainImage.image.height
             };
             let imageRect = calculateCenterPosition({ width: this.props.width, height: this.props.height },
                 imageDimensions);

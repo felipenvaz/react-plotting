@@ -1,24 +1,37 @@
-export interface IPosition {
+export type Position = {
     x: number;
     y: number;
 };
 
-export interface IMouseEvents {
+export type MouseEvents = {
     isDown: boolean;
-    previousPos: IPosition;
+    previousPos: Position;
 };
 
-export interface IReactPlottingProps {
-    width: number;
+export type Element = {
+    imageUrl: string;
+    position: Position;
     height: number;
+    width: number;
+};
+
+export interface IContainer {
+    height: number;
+    width: number;
+};
+
+export interface IRectangle extends IContainer {
+    x: number;
+    y: number;
 }
 
-export interface IReactPlottingState {
-    image: {
-        loaded: boolean;
-        image: HTMLImageElement;
-        url: string;
-    },
-    scale: number;
-    displacement: IPosition;
+export interface IImage {
+    image?: HTMLImageElement;
+    loaded?: boolean;
+    loading?: boolean;
+    url: string;
+}
+
+export interface IImageHash {
+    [image: string]: IImage;
 }

@@ -1,11 +1,13 @@
-export const calculateProportion = (outerContainer, { width, height }) => {
-    let widthProportion = outerContainer.width / width;
-    let heightProportion = outerContainer.height / height;
+import { IContainer, IRectangle } from "./types";
+
+export const calculateProportion = (outerContainer: IContainer, container: IContainer) => {
+    let widthProportion = outerContainer.width / container.width;
+    let heightProportion = outerContainer.height / container.height;
     let proportion = Math.min(widthProportion, heightProportion);
     return proportion;
 };
 
-export const calculateCenterPosition = (outerContainer, container) => {
+export const calculateCenterPosition = (outerContainer: IContainer, container: IContainer) => {
     let proportion = calculateProportion(outerContainer, container);
     let width = container.width * proportion;
     let height = container.height * proportion;
@@ -20,12 +22,11 @@ export const calculateCenterPosition = (outerContainer, container) => {
     }
 };
 
-export const calculateScaledPosition = (outerContainer, rect, scale) => {
-    let applyScaleToPos = (zoomAt, pos, dim) => {
-        //let dimScale = ((dim * scale) - dim) / 2;
+export const calculateScaledPosition = (outerContainer: IContainer, rect: IRectangle, scale: number) => {
+    let applyScaleToPos = (zoomAt: number, pos: number, dim: number): number => {
         return zoomAt - (zoomAt - pos) * scale;
     };
-    let applyScaleToDim = (dim) => {
+    let applyScaleToDim = (dim: number): number => {
         return dim * scale;
     };
     return {
