@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { calculateCenterPosition, calculateScaledPosition } from './calcUtils.js';
+import { calculateCenterPosition, calculateScaledPosition } from './calcUtils';
 import { MouseEvents, Position, Element, IImageHash, IImage } from './types';
 
 export interface IReactPlottingProps {
