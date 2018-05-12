@@ -13,6 +13,7 @@ export type Element = {
     position: Position;
     height: number;
     width: number;
+    imageScales?: boolean;
 };
 
 export interface IContainer {

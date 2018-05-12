@@ -7,8 +7,8 @@ export const calculateProportion = (outerContainer: IContainer, container: ICont
     return proportion;
 };
 
-export const calculateCenterPosition = (outerContainer: IContainer, container: IContainer) => {
-    let proportion = calculateProportion(outerContainer, container);
+export const calculateCenterPosition = (outerContainer: IContainer, container: IContainer, proportion?: number) => {
+    if (!proportion) proportion = calculateProportion(outerContainer, container);
     let width = container.width * proportion;
     let height = container.height * proportion;
     let correctPos = (posParent, pos) => {

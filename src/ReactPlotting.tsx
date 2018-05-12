@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { calculateCenterPosition, calculateScaledPosition } from './calcUtils';
+import { calculateCenterPosition, calculateScaledPosition, calculateProportion } from './calcUtils';
 import { MouseEvents, Position, Element, IImageHash, IImage } from './types';
 
 export interface IReactPlottingProps {
@@ -18,6 +18,7 @@ export interface IReactPlottingState {
 export default class ReactPlotting extends React.Component<IReactPlottingProps, IReactPlottingState> {
     canvasRef: HTMLCanvasElement;
     mouseEvents: MouseEvents;
+    bgImageProportion: number;
 
     constructor(props) {
         super(props);
@@ -34,6 +35,9 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
                 y: 0,
             }
         };
+
+        this.bgImageProportion = 1;
+
         if (props.imageUrl) {
             this.state.images[props.imageUrl] = {
                 url: props.imageUrl
@@ -87,6 +91,10 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
         });
     }
 
+    isImageLoaded(url: string): boolean {
+        return this.state.images[url] && this.state.images[url].loaded;
+    }
+
     updateCanvas() {
         if (this.canvasRef) {
             let canvas = this.canvasRef;
@@ -96,13 +104,15 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (this.state.images[this.props.imageUrl] && this.state.images[this.props.imageUrl].loaded) {
+            if (this.isImageLoaded(this.props.imageUrl)) {
                 let mainImage = this.state.images[this.props.imageUrl];
                 let imageDimensions = {
                     width: mainImage.image.width,
                     height: mainImage.image.height
                 };
-                let imageRect = calculateCenterPosition(canvasDimensions, imageDimensions);
+
+                this.bgImageProportion = calculateProportion(canvasDimensions, imageDimensions);
+                let imageRect = calculateCenterPosition(canvasDimensions, imageDimensions, this.bgImageProportion);
                 imageRect.x += this.state.displacement.x;
                 imageRect.y += this.state.displacement.y;
 
@@ -113,17 +123,38 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
                     scaledImageRect.width,
                     scaledImageRect.height);
 
-                this.renderElements();
+                this.renderElements(scaledImageRect.x, scaledImageRect.y, this.bgImageProportion * this.state.scale);
+
                 /* ctx.strokeStyle = "red";
-                ctx.strokeRect(canvasDimensions.width / 2 - 2, canvasDimensions.height / 2 - 2, 4, 4); */
+                ctx.strokeRect(canvasDimensions.width / 2 - 2, canvasDimensions.height / 2 - 2, 4, 4);
+                ctx.strokeRect(scaledImageRect.x,
+                    scaledImageRect.y,
+                    scaledImageRect.width,
+                    scaledImageRect.height); */
             }
         }
     }
 
-    renderElements() {
-        if (this.props.elements) {
-            //how to calculate the position? answer: relative to the image, as if the image would be plotted with its original size
-            //if the screen size changes, the position would be wrong
+    renderElements(bgX, bgY, scale) {
+        if (this.canvasRef && this.props.elements) {
+            let canvas = this.canvasRef;
+            const ctx = canvas.getContext('2d');
+            this.props.elements.forEach((element) => {
+                if (this.isImageLoaded(element.imageUrl)) {
+                    let width = element.width;
+                    let height = element.height;
+                    if (element.imageScales) {
+                        width *= scale;
+                        height *= scale;
+                    }
+
+                    ctx.drawImage(this.state.images[element.imageUrl].image,
+                        bgX + element.position.x * scale - (width / 2),
+                        bgY + element.position.y * scale - (height / 2),
+                        width,
+                        height);
+                }
+            });
         }
     }
 
@@ -156,7 +187,6 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
     mouseDown(event) {
         this.mouseEvents.isDown = true;
         this.mouseEvents.previousPos = { x: event.x, y: event.y };
-
     }
 
     componentDidMount() {
@@ -213,6 +243,17 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
                 nextState.displacement.y = calculateProportionalDisplacement(this.state.displacement.y, imageRect.height, newImageRect.height);
             }
         }
+
+        if (nextProps.elements) {
+            nextProps.elements.forEach((element) => {
+                if (nextState.images[element.imageUrl] === undefined) {
+                    nextState.images[element.imageUrl] = {
+                        url: element.imageUrl
+                    };
+                }
+            });
+        }
+
         this.setState(nextState);
     }
 

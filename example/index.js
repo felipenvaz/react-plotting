@@ -27,7 +27,7 @@ class App extends React.Component {
                 width: 0,
                 height: 0
             },
-            elements: this.generateElements(2),
+            elements: this.generateElements(100),
             image: this.images[0]
         };
     }
@@ -44,7 +44,8 @@ class App extends React.Component {
                     y: (Math.random() * 200) + 50
                 },
                 height: 25,
-                width: 25
+                width: 25,
+                imageScales: true
             });
         }
 
