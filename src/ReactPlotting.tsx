@@ -1,24 +1,26 @@
 import * as React from 'react';
 import { calculateCenterPosition, calculateScaledPosition, calculateProportion } from './calcUtils';
-import { MouseEvents, Position, Element, IImageHash, IImage } from './types';
+import { MouseEvents, IPosition, IElement, IImageHash, IImage, IRectangle } from './types';
 
-export interface IReactPlottingProps {
+export interface IOwnProps {
     width: number;
     height: number;
     imageUrl: string;
-    elements?: Array<Element>;
+    elements?: Array<IElement>;
+    onElementsHover?: (elements: Array<IElement>) => void;
 }
 
-export interface IReactPlottingState {
+export interface IOwnState {
     scale: number;
-    displacement: Position;
+    displacement: IPosition;
     images: IImageHash;
 }
 
-export default class ReactPlotting extends React.Component<IReactPlottingProps, IReactPlottingState> {
+export default class ReactPlotting extends React.Component<IOwnProps, IOwnState> {
     canvasRef: HTMLCanvasElement;
     mouseEvents: MouseEvents;
     bgImageProportion: number;
+    renderedElements: Array<{ rectangle: IRectangle; element: IElement }>;
 
     constructor(props) {
         super(props);
@@ -37,6 +39,7 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
         };
 
         this.bgImageProportion = 1;
+        this.renderedElements = [];
 
         if (props.imageUrl) {
             this.state.images[props.imageUrl] = {
@@ -136,6 +139,7 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
     }
 
     renderElements(bgX, bgY, scale) {
+        this.renderedElements = [];
         if (this.canvasRef && this.props.elements) {
             let canvas = this.canvasRef;
             const ctx = canvas.getContext('2d');
@@ -148,11 +152,20 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
                         height *= scale;
                     }
 
-                    ctx.drawImage(this.state.images[element.imageUrl].image,
-                        bgX + element.position.x * scale - (width / 2),
-                        bgY + element.position.y * scale - (height / 2),
+                    let elementRect = {
+                        x: bgX + element.position.x * scale - (width / 2),
+                        y: bgY + element.position.y * scale - (height / 2),
                         width,
-                        height);
+                        height
+                    };
+
+                    this.renderedElements.push({ rectangle: elementRect, element });
+
+                    ctx.drawImage(this.state.images[element.imageUrl].image,
+                        elementRect.x,
+                        elementRect.y,
+                        elementRect.width,
+                        elementRect.height);
                 }
             });
         }
@@ -178,8 +191,24 @@ export default class ReactPlotting extends React.Component<IReactPlottingProps, 
             });
             this.mouseEvents.previousPos = { x: event.x, y: event.y };
         }
+
+        if (this.props.onElementsHover) {
+            let hoveredElements = this.getHoveredElements({ x: event.x, y: event.y });
+            this.props.onElementsHover(hoveredElements);
+        }
     }
 
+    isInsideRectangle(rect: IRectangle, position: IPosition): boolean {
+        return (position.x >= rect.x && position.x <= rect.x + rect.width)
+        && (position.y >= rect.y && position.y <= rect.y + rect.height)
+    }
+
+    getHoveredElements(mousePosition: IPosition): Array<IElement> {
+        return this.renderedElements
+            .filter((value) => {
+                return this.isInsideRectangle(value.rectangle, mousePosition);
+            }).map((value) => value.element);
+    }
     mouseUp(event) {
         this.mouseEvents.isDown = false;
     }

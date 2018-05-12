@@ -1,20 +1,20 @@
-export type Position = {
+export interface IPosition {
     x: number;
     y: number;
-};
+}
 
 export type MouseEvents = {
     isDown: boolean;
-    previousPos: Position;
+    previousPos: IPosition;
 };
 
-export type Element = {
+export interface IElement {
     imageUrl: string;
-    position: Position;
+    position: IPosition;
     height: number;
     width: number;
     imageScales?: boolean;
-};
+}
 
 export interface IContainer {
     height: number;
