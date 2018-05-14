@@ -27,7 +27,7 @@ class App extends React.Component {
                 width: 0,
                 height: 0
             },
-            elements: this.generateElements(100),
+            elements: this.generateElements(1),
             image: this.images[0],
             hitText: ''
         };
@@ -41,13 +41,11 @@ class App extends React.Component {
             elements.push({
                 name: `Element ${i}`,
                 imageUrl: images[Math.floor((Math.random() * 100 * images.length) % images.length)],
-                position: {
-                    x: (Math.random() * 600),
-                    y: (Math.random() * 450)
-                },
+                x: (Math.random() * 600),
+                y: (Math.random() * 450),
                 height: 25,
                 width: 25,
-                imageScales: true
+                elementScales: true
             });
         }
 

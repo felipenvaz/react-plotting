@@ -1,12 +1,15 @@
 import * as React from 'react';
-import { calculateCenterPosition, calculateScaledPosition, calculateProportion } from './calcUtils';
-import { MouseEvents, IPosition, IElement, IImageHash, IImage, IRectangle } from './types';
+import { calculateCenterPosition, calculateScaledPosition, calculateProportion } from './utils/calcUtils';
+import { isHoveringPlottedShape } from './utils/shapeUtils';
+import { MouseEvents, IImageHash, IImage } from './types';
+import { IElement, IRectangleElement } from './types/Element';
+import { IPosition, IRectangle, ICircle, IPlottedShape } from './types/Shapes';
 
 export interface IOwnProps {
     width: number;
     height: number;
     imageUrl: string;
-    elements?: Array<IElement>;
+    elements?: Array<IRectangleElement>;
     onElementsHover?: (elements: Array<IElement>) => void;
 }
 
@@ -20,14 +23,16 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
     canvasRef: HTMLCanvasElement;
     mouseEvents: MouseEvents;
     bgImageProportion: number;
-    renderedElements: Array<{ rectangle: IRectangle; element: IElement }>;
+    renderedElements: Array<{ plottedShape: IPlottedShape; element: IElement }>;
 
     constructor(props) {
         super(props);
         this.handleWheel = this.handleWheel.bind(this);
         this.mouseMove = this.mouseMove.bind(this);
         this.mouseUp = this.mouseUp.bind(this);
+        this.mouseLeave = this.mouseLeave.bind(this);
         this.mouseDown = this.mouseDown.bind(this);
+        this.setCanvasRef = this.setCanvasRef.bind(this);
 
         this.state = {
             images: {},
@@ -147,19 +152,19 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
                 if (this.isImageLoaded(element.imageUrl)) {
                     let width = element.width;
                     let height = element.height;
-                    if (element.imageScales) {
+                    if (element.elementScales) {
                         width *= scale;
                         height *= scale;
                     }
 
                     let elementRect = {
-                        x: bgX + element.position.x * scale - (width / 2),
-                        y: bgY + element.position.y * scale - (height / 2),
+                        x: bgX + element.x * scale - (width / 2),
+                        y: bgY + element.y * scale - (height / 2),
                         width,
                         height
                     };
 
-                    this.renderedElements.push({ rectangle: elementRect, element });
+                    this.renderedElements.push({ plottedShape: elementRect, element });
 
                     ctx.drawImage(this.state.images[element.imageUrl].image,
                         elementRect.x,
@@ -198,19 +203,22 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
         }
     }
 
-    isInsideRectangle(rect: IRectangle, position: IPosition): boolean {
-        return (position.x >= rect.x && position.x <= rect.x + rect.width)
-        && (position.y >= rect.y && position.y <= rect.y + rect.height)
-    }
-
     getHoveredElements(mousePosition: IPosition): Array<IElement> {
         return this.renderedElements
             .filter((value) => {
-                return this.isInsideRectangle(value.rectangle, mousePosition);
+                return isHoveringPlottedShape(value.plottedShape, mousePosition);
             }).map((value) => value.element);
     }
-    mouseUp(event) {
+
+    mouseUp() {
         this.mouseEvents.isDown = false;
+    }
+
+    mouseLeave() {
+        this.mouseUp();
+        if (this.props.onElementsHover) {
+            this.props.onElementsHover([]);
+        }
     }
 
     mouseDown(event) {
@@ -222,7 +230,7 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
         window.addEventListener('wheel', this.handleWheel);
         this.canvasRef.addEventListener('mousemove', this.mouseMove);
         this.canvasRef.addEventListener('mouseup', this.mouseUp);
-        this.canvasRef.addEventListener('mouseleave', this.mouseUp);
+        this.canvasRef.addEventListener('mouseleave', this.mouseLeave);
         this.canvasRef.addEventListener('mousedown', this.mouseDown);
     }
 
@@ -230,7 +238,7 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
         window.removeEventListener('wheel', this.handleWheel);
         this.canvasRef.removeEventListener('mousemove', this.mouseMove);
         this.canvasRef.removeEventListener('mouseup', this.mouseUp);
-        this.canvasRef.addEventListener('mouseleave', this.mouseUp);
+        this.canvasRef.addEventListener('mouseleave', this.mouseLeave);
         this.canvasRef.removeEventListener('mousedown', this.mouseDown);
     }
 
@@ -286,7 +294,11 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
         this.setState(nextState);
     }
 
+    setCanvasRef(ref: HTMLCanvasElement) {
+        this.canvasRef = ref;
+    }
+
     render() {
-        return <canvas style={{ display: 'block' }} ref={(canvas) => { this.canvasRef = canvas; }}></canvas>;
+        return <canvas style={{ display: 'block' }} ref={this.setCanvasRef}></canvas>;
     }
 }

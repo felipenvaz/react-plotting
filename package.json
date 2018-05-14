@@ -1,6 +1,6 @@
 {
   "name": "react-plotting",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "",
   "main": "./dist/ReactPlotting.js",
   "types": "./dist/ReactPlotting.d.ts",
