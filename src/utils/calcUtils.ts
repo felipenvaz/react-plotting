@@ -36,3 +36,10 @@ export const calculateScaledPosition = (outerContainer: IContainer, rect: IRecta
         height: applyScaleToDim(rect.height)
     };
 };
+
+export const calculateProportionalDisplacement = (currDisplacement, currDim, nextDim) => {
+    if (!currDim || !nextDim) {
+        return currDisplacement;
+    }
+    return (nextDim / currDim) * currDisplacement;
+};

@@ -1,9 +1,9 @@
-import { IRectangle } from "src/types/Shapes";
+import { IContainer, IPosition } from "src/types/Shapes";
 
-export interface IElement {
+export interface IElement extends IPosition {
     imageUrl: string;
     elementScales?: boolean;
 }
 
-export interface IRectangleElement extends IElement, IRectangle{
+export interface IRectangleElement extends IElement, IContainer{
 }

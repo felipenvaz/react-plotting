@@ -17,6 +17,8 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.onElementsHover = this.onElementsHover.bind(this);
+        this.onElementsClick = this.onElementsClick.bind(this);
+        this.onElementsDragged = this.onElementsDragged.bind(this);
         this.images = [
             'https://www.roomsketcher.com/wp-content/uploads/2016/10/1-Bedroom-Floor-Plan-600x450.jpg',
             'https://www.roomsketcher.com/wp-content/uploads/2015/11/RoomSketcher-2-Bedroom-Floor-Plans.jpg'
@@ -27,9 +29,10 @@ class App extends React.Component {
                 width: 0,
                 height: 0
             },
-            elements: this.generateElements(1),
+            elements: this.generateElements(50),
             image: this.images[0],
-            hitText: ''
+            hoverText: '',
+            clickText: ''
         };
     }
 
@@ -60,7 +63,25 @@ class App extends React.Component {
     }
 
     onElementsHover(elements) {
-        this.setState({ hitText: elements.reduce((acc, cur) => acc + ` ${cur.name}`, '') });
+        this.setState({ hoverText: elements.reduce((acc, cur) => acc + ` ${cur.name}`, '') });
+    }
+
+    onElementsClick(elements) {
+        this.setState({ clickText: elements.reduce((acc, cur) => acc + ` ${cur.name}`, '') });
+    }
+
+    onElementsDragged(elementsDragged) {
+        this.setState((prevState) => {
+            let elements = [...prevState.elements];
+
+            elementsDragged.forEach((element) => {
+                let draggedElement = elements.find((e) => e.name === element.name);
+                draggedElement.x = element.x;
+                draggedElement.y = element.y;
+            });
+
+            return { elements };
+        });
     }
 
     render() {
@@ -71,12 +92,15 @@ class App extends React.Component {
             }}>
             {({ measureRef }) =>
                 <div ref={measureRef} style={style}>
-                    <div style={{ position: 'fixed', top: '5px', left: '5px' }}>{this.state.hitText}</div>
+                    <div style={{ position: 'fixed', top: '5px', left: '5px' }}>{this.state.hoverText}</div>
+                    <div style={{ position: 'fixed', top: '20px', left: '5px' }}>{this.state.clickText}</div>
                     <ReactPlotting imageUrl={this.state.image}
                         height={this.state.dimensions.height}
                         width={this.state.dimensions.width}
                         elements={this.state.elements}
-                        onElementsHover={this.onElementsHover} />
+                        onElementsHover={this.onElementsHover}
+                        onElementsClick={this.onElementsClick}
+                        onElementsDragged={this.onElementsDragged} />
                 </div>
             }
         </Measure>

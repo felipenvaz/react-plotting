@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { calculateCenterPosition, calculateScaledPosition, calculateProportion } from './utils/calcUtils';
+import { calculateCenterPosition, calculateScaledPosition, calculateProportion, calculateProportionalDisplacement } from './utils/calcUtils';
 import { isHoveringPlottedShape } from './utils/shapeUtils';
-import { MouseEvents, IImageHash, IImage } from './types';
+import { IMouseEvents, IImageHash, IImage } from './types';
 import { IElement, IRectangleElement } from './types/Element';
 import { IPosition, IRectangle, ICircle, IPlottedShape } from './types/Shapes';
 
@@ -11,6 +11,8 @@ export interface IOwnProps {
     imageUrl: string;
     elements?: Array<IRectangleElement>;
     onElementsHover?: (elements: Array<IElement>) => void;
+    onElementsClick?: (elements: Array<IElement>) => void;
+    onElementsDragged?: (elements: Array<IElement>) => void;
 }
 
 export interface IOwnState {
@@ -21,9 +23,10 @@ export interface IOwnState {
 
 export default class ReactPlotting extends React.Component<IOwnProps, IOwnState> {
     canvasRef: HTMLCanvasElement;
-    mouseEvents: MouseEvents;
+    mouseEvents: IMouseEvents;
     bgImageProportion: number;
     renderedElements: Array<{ plottedShape: IPlottedShape; element: IElement }>;
+    canvasStyle: any;
 
     constructor(props) {
         super(props);
@@ -39,7 +42,7 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
             scale: 1,
             displacement: {
                 x: 0,
-                y: 0,
+                y: 0
             }
         };
 
@@ -54,11 +57,14 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
 
         this.mouseEvents = {
             isDown: false,
+            dragging: false,
             previousPos: {
                 x: 0,
                 y: 0
             }
         };
+
+        this.canvasStyle = { display: 'block' };
     }
 
     setImage(image: IImage) {
@@ -182,40 +188,64 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
         });
     }
 
-    mouseMove(event) {
-        if (this.mouseEvents.isDown) {
-            let diffX = event.x - this.mouseEvents.previousPos.x;
-            let diffY = event.y - this.mouseEvents.previousPos.y;
-            this.setState((prevState) => {
-                return {
-                    displacement: {
-                        x: prevState.displacement.x + diffX / prevState.scale,
-                        y: prevState.displacement.y + diffY / prevState.scale
-                    }
-                }
-            });
-            this.mouseEvents.previousPos = { x: event.x, y: event.y };
-        }
-
-        if (this.props.onElementsHover) {
-            let hoveredElements = this.getHoveredElements({ x: event.x, y: event.y });
-            this.props.onElementsHover(hoveredElements);
-        }
-    }
-
     getHoveredElements(mousePosition: IPosition): Array<IElement> {
         return this.renderedElements
             .filter((value) => {
                 return isHoveringPlottedShape(value.plottedShape, mousePosition);
-            }).map((value) => value.element);
+            }).map((value) => { return { ...value.element }; });
     }
 
-    mouseUp() {
+    mouseMove(event) {
+        if (this.mouseEvents.isDown) {
+            if (this.props.onElementsHover) {
+                this.props.onElementsHover([]);
+            }
+            this.mouseEvents.dragging = true;
+            let diffX = event.x - this.mouseEvents.previousPos.x;
+            let diffY = event.y - this.mouseEvents.previousPos.y;
+
+            if (this.mouseEvents.draggedElements && this.props.onElementsDragged) {
+                this.mouseEvents.draggedElements = this.mouseEvents.draggedElements.map((element) => {
+                    return {
+                        ...element,
+                        x: element.x + diffX / this.bgImageProportion * this.state.scale,
+                        y: element.y + diffY / this.bgImageProportion * this.state.scale
+                    };
+                })
+                this.props.onElementsDragged(this.mouseEvents.draggedElements);
+            } else {
+                this.setState((prevState) => {
+                    return {
+                        displacement: {
+                            x: prevState.displacement.x + diffX / prevState.scale,
+                            y: prevState.displacement.y + diffY / prevState.scale
+                        }
+                    }
+                });
+            }
+            this.mouseEvents.previousPos = { x: event.x, y: event.y };
+        } else {
+            if (this.props.onElementsHover) {
+                let hoveredElements = this.getHoveredElements({ x: event.x, y: event.y });
+                this.props.onElementsHover(hoveredElements);
+            }
+        }
+    }
+
+    mouseUp(event) {
+        if (this.mouseEvents.isDown 
+            && !this.mouseEvents.dragging
+            && this.props.onElementsClick) {
+            let hoveredElements = this.getHoveredElements({ x: event.x, y: event.y });
+            this.props.onElementsClick(hoveredElements);
+        }
         this.mouseEvents.isDown = false;
+        this.mouseEvents.draggedElements = null;
     }
 
     mouseLeave() {
-        this.mouseUp();
+        this.mouseEvents.isDown = false;
+        this.mouseEvents.draggedElements = null;
         if (this.props.onElementsHover) {
             this.props.onElementsHover([]);
         }
@@ -224,6 +254,12 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
     mouseDown(event) {
         this.mouseEvents.isDown = true;
         this.mouseEvents.previousPos = { x: event.x, y: event.y };
+        this.mouseEvents.dragging = true;
+        if (!this.props.onElementsDragged) return;
+        let hoveredElements = this.getHoveredElements({ x: event.x, y: event.y });
+        if (hoveredElements.length) {
+            this.mouseEvents.draggedElements = hoveredElements;
+        }
     }
 
     componentDidMount() {
@@ -255,14 +291,9 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
                     url: nextProps.imageUrl
                 };
             }
-        } else if (this.state.images[nextProps.imageUrl] && this.state.images[nextProps.imageUrl].loaded) {
-            let calculateProportionalDisplacement = (currDisplacement, currDim, nextDim) => {
-                if (!currDim || !nextDim) {
-                    return currDisplacement;
-                }
-                return (nextDim / currDim) * currDisplacement;
-            };
-
+            nextState.displacement = { x: 0, y: 0 };
+        } else if (this.state.images[nextProps.imageUrl] && this.state.images[nextProps.imageUrl].loaded
+            && (this.props.width != nextProps.width || this.props.height != nextProps.height)) {
             let mainImage = this.state.images[nextProps.imageUrl];
             let imageDimensions = {
                 width: mainImage.image.width,
@@ -299,6 +330,6 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
     }
 
     render() {
-        return <canvas style={{ display: 'block' }} ref={this.setCanvasRef}></canvas>;
+        return <canvas style={this.canvasStyle} ref={this.setCanvasRef}></canvas>;
     }
 }
