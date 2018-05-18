@@ -1,6 +1,6 @@
 {
   "name": "react-plotting",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "",
   "main": "./dist/ReactPlotting.js",
   "types": "./dist/ReactPlotting.d.ts",
@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/felipenvaz/react-plotting.git"
   },
-  "author": "Felipe Nunes Vaz",
+  "author": "felipenvaz",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/felipenvaz/react-plotting/issues"
@@ -27,6 +27,7 @@
   "devDependencies": {
     "@types/react": "^16.3.13",
     "@types/react-dom": "^16.0.5",
+    "@types/react-measure": "^2.0.2",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
@@ -39,12 +40,12 @@
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "react-measure": "^2.0.2",
-    "webpack": "^3.10.0",
-    "webpack-dev-server": "^2.11.1",
-    "webpack-cleanup-plugin": "^0.5.1",
-    "webpack-bundle-analyzer": "^2.11.1",
-    "typescript": "^2.8.3",
     "ts-loader": "^3",
-    "tslint": "^5.9.1"
+    "tslint": "^5.9.1",
+    "typescript": "^2.8.3",
+    "webpack": "^3.10.0",
+    "webpack-bundle-analyzer": "^2.11.1",
+    "webpack-cleanup-plugin": "^0.5.1",
+    "webpack-dev-server": "^2.11.1"
   }
 }

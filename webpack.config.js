@@ -6,7 +6,7 @@ module.exports = function () {
     var config = {};
 
     config.entry = {
-        main: './example/index.js'
+        main: './example/index.tsx'
     };
 
     config.output = {

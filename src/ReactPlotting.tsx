@@ -1,18 +1,18 @@
 import * as React from 'react';
 import { calculateCenterPosition, calculateScaledPosition, calculateProportion, calculateProportionalDisplacement } from './utils/calcUtils';
-import { isHoveringPlottedShape } from './utils/shapeUtils';
+import { isHoveringPlottedShape, isRectangle, isCircle } from './utils/shapeUtils';
 import { IMouseEvents, IImageHash, IImage } from './types';
-import { IElement, IRectangleElement } from './types/Element';
+import { IElement } from './types/Element';
 import { IPosition, IRectangle, ICircle, IPlottedShape } from './types/Shapes';
 
 export interface IOwnProps {
     width: number;
     height: number;
     imageUrl: string;
-    elements?: Array<IRectangleElement>;
-    onElementsHover?: (elements: Array<IElement>) => void;
-    onElementsClick?: (elements: Array<IElement>) => void;
-    onElementsDragged?: (elements: Array<IElement>) => void;
+    elements?: Array<IElement>;
+    onElementsHover?: (position: IPosition, elements: Array<IElement>) => void;
+    onElementsClick?: (position: IPosition, elements: Array<IElement>) => void;
+    onElementsDragged?: (position: IPosition, elements: Array<IElement>) => void;
 }
 
 export interface IOwnState {
@@ -156,27 +156,43 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
             const ctx = canvas.getContext('2d');
             this.props.elements.forEach((element) => {
                 if (this.isImageLoaded(element.imageUrl)) {
-                    let width = element.width;
-                    let height = element.height;
+                    let plottedRect;
+                    //let elementIsCircle = false;
+                    if (isRectangle(element.plottedShape)) {
+                        plottedRect = element.plottedShape as IRectangle;
+                    }/*  else if (isCircle(element.plottedShape)) {
+                        elementIsCircle = true;
+                        let plottedCircle = element.plottedShape as ICircle;
+                        plottedRect = {
+                            x: plottedCircle.x,
+                            y: plottedCircle.y,
+                            width: plottedCircle.radius / 2,
+                            height: plottedCircle.radius / 2
+                        } as IRectangle;
+                    } */
+                    let width = plottedRect.width;
+                    let height = plottedRect.height;
                     if (element.elementScales) {
                         width *= scale;
                         height *= scale;
                     }
 
                     let elementRect = {
-                        x: bgX + element.x * scale - (width / 2),
-                        y: bgY + element.y * scale - (height / 2),
+                        x: bgX + plottedRect.x * scale - (width / 2),
+                        y: bgY + plottedRect.y * scale - (height / 2),
                         width,
                         height
                     };
 
                     this.renderedElements.push({ plottedShape: elementRect, element });
+                    let image = this.state.images[element.imageUrl].image;
 
-                    ctx.drawImage(this.state.images[element.imageUrl].image,
+                    ctx.drawImage(image,
                         elementRect.x,
                         elementRect.y,
                         elementRect.width,
                         elementRect.height);
+
                 }
             });
         }
@@ -196,23 +212,27 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
     }
 
     mouseMove(event) {
+        let mousePosition = { x: event.x, y: event.y } as IPosition;
         if (this.mouseEvents.isDown) {
             if (this.props.onElementsHover) {
-                this.props.onElementsHover([]);
+                this.props.onElementsHover(mousePosition, []);
             }
             this.mouseEvents.dragging = true;
-            let diffX = event.x - this.mouseEvents.previousPos.x;
-            let diffY = event.y - this.mouseEvents.previousPos.y;
+            let diffX = mousePosition.x - this.mouseEvents.previousPos.x;
+            let diffY = mousePosition.y - this.mouseEvents.previousPos.y;
 
             if (this.mouseEvents.draggedElements && this.props.onElementsDragged) {
                 this.mouseEvents.draggedElements = this.mouseEvents.draggedElements.map((element) => {
                     return {
                         ...element,
-                        x: element.x + diffX / this.bgImageProportion * this.state.scale,
-                        y: element.y + diffY / this.bgImageProportion * this.state.scale
+                        plottedShape: {
+                            ...element.plottedShape,
+                            x: element.plottedShape.x + diffX / this.bgImageProportion * this.state.scale,
+                            y: element.plottedShape.y + diffY / this.bgImageProportion * this.state.scale
+                        }
                     };
                 })
-                this.props.onElementsDragged(this.mouseEvents.draggedElements);
+                this.props.onElementsDragged(mousePosition, this.mouseEvents.draggedElements);
             } else {
                 this.setState((prevState) => {
                     return {
@@ -223,38 +243,40 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
                     }
                 });
             }
-            this.mouseEvents.previousPos = { x: event.x, y: event.y };
+            this.mouseEvents.previousPos = mousePosition;
         } else {
             if (this.props.onElementsHover) {
-                let hoveredElements = this.getHoveredElements({ x: event.x, y: event.y });
-                this.props.onElementsHover(hoveredElements);
+                let hoveredElements = this.getHoveredElements(mousePosition);
+                this.props.onElementsHover(mousePosition, hoveredElements);
             }
         }
     }
 
     mouseUp(event) {
-        if (this.mouseEvents.isDown 
+        let mousePosition = { x: event.x, y: event.y } as IPosition;
+        if (this.mouseEvents.isDown
             && !this.mouseEvents.dragging
             && this.props.onElementsClick) {
             let hoveredElements = this.getHoveredElements({ x: event.x, y: event.y });
-            this.props.onElementsClick(hoveredElements);
+            this.props.onElementsClick(mousePosition, hoveredElements);
         }
         this.mouseEvents.isDown = false;
         this.mouseEvents.draggedElements = null;
     }
 
-    mouseLeave() {
+    mouseLeave(event) {
+        let mousePosition = { x: event.x, y: event.y } as IPosition;
         this.mouseEvents.isDown = false;
         this.mouseEvents.draggedElements = null;
         if (this.props.onElementsHover) {
-            this.props.onElementsHover([]);
+            this.props.onElementsHover(mousePosition, []);
         }
     }
 
     mouseDown(event) {
         this.mouseEvents.isDown = true;
         this.mouseEvents.previousPos = { x: event.x, y: event.y };
-        this.mouseEvents.dragging = true;
+        this.mouseEvents.dragging = false;
         if (!this.props.onElementsDragged) return;
         let hoveredElements = this.getHoveredElements({ x: event.x, y: event.y });
         if (hoveredElements.length) {

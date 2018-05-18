@@ -12,11 +12,11 @@ const isShape = <T>(plottedShape: T, sample: T): boolean => {
     return true;
 }
 
-export const isRectangle = (plottedShape: IPlottedShape) : boolean => {
+export const isRectangle = (plottedShape: IPlottedShape): boolean => {
     return isShape<IRectangle>(plottedShape as IRectangle, rectangleSample);
 };
 
-export const isCircle = (plottedShape: IPlottedShape) : boolean => {
+export const isCircle = (plottedShape: IPlottedShape): boolean => {
     return isShape<ICircle>(plottedShape as ICircle, circleSample);
 };
 
@@ -26,7 +26,7 @@ export const isInsideRectangle = (rect: IRectangle, position: IPosition): boolea
 }
 
 export const isInsideCircle = (circle: ICircle, position: IPosition): boolean => {
-    return false;
+    return Math.pow(position.x - circle.x, 2) + Math.pow(position.y - circle.y, 2) < Math.pow(circle.radius, 2);
 }
 
 export const isHoveringPlottedShape = (plottedShape: IPlottedShape, mousePosition: IPosition): boolean => {

@@ -1,9 +1,8 @@
-import { IContainer, IPosition } from "src/types/Shapes";
+import { IContainer, IPosition, ICircle, IPlottedShape, IRectangle } from "src/types/Shapes";
 
-export interface IElement extends IPosition {
-    imageUrl: string;
+export interface IElement {
+    imageUrl?: string;
+    color?: string;
     elementScales?: boolean;
-}
-
-export interface IRectangleElement extends IElement, IContainer{
+    plottedShape: IPlottedShape;
 }
