@@ -3,14 +3,12 @@ import 'core-js/es6/set';
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import "babel-polyfill";
+import 'babel-polyfill';
 import Measure from 'react-measure';
 
-import ReactPlotting from './../src/ReactPlotting';
-import { IElement } from 'src/types/Element';
-import { IRectangle, IPosition, ICircle } from 'src/types/Shapes';
+import ReactPlotting from '../src';
 
-let style = {
+const style = {
     height: '100%',
     width: '100%'
 };
@@ -20,7 +18,7 @@ export interface IExampleElement extends IElement {
 }
 
 export interface IOwnState {
-    elements: Array<IExampleElement>;
+    elements: IExampleElement[];
     dimensions: { width: number; height: number };
     image: string;
     hoverText: string;
@@ -52,10 +50,10 @@ class App extends React.Component<{}, IOwnState> {
         };
     }
 
-    generateElements(amount) {
-        let images = [//'http://icon-park.com/imagefiles/config_tool_icon2_blue.png',
+    public generateElements(amount) {
+        const images = [// 'http://icon-park.com/imagefiles/config_tool_icon2_blue.png',
             'https://www.easycalculation.com/area/images/big-square.gif'];
-        let elements = [] as Array<IExampleElement>;
+        const elements = [] as IExampleElement[];
 
         for (let i = 0; i < amount; i++) {
             elements.push({
@@ -67,8 +65,8 @@ class App extends React.Component<{}, IOwnState> {
                     height: 25,
                     width: 25,
                     /* radius: 50 */
-                }  as IRectangle, //as ICircle,
-                
+                } as IRectangle, // as ICircle,
+
                 elementScales: true
             });
         }
@@ -76,21 +74,21 @@ class App extends React.Component<{}, IOwnState> {
         return elements;
     }
 
-    onElementsHover(position: IPosition, elements: Array<IExampleElement>) {
+    public onElementsHover(position: IPosition, elements: IExampleElement[]) {
         this.setState({ hoverText: elements.reduce((acc, cur) => acc + ` ${cur.name}`, '') });
     }
 
-    onElementsClick(position: IPosition, elements: Array<IExampleElement>) {
+    public onElementsClick(position: IPosition, elements: IExampleElement[]) {
         this.setState({ clickText: elements.reduce((acc, cur) => acc + ` ${cur.name}`, '') });
     }
 
-    onElementsDragged(position: IPosition, elementsDragged: Array<IExampleElement>) {
+    public onElementsDragged(position: IPosition, elementsDragged: IExampleElement[]) {
         this.setState((prevState) => {
-            let elements = [...prevState.elements];
+            const elements = [...prevState.elements];
 
-            //instead of forEach, some is used to only allow the user to drag one element at a time
+            // instead of forEach, some is used to only allow the user to drag one element at a time
             elementsDragged.some((element) => {
-                let draggedElement = elements.find((e) => e.name === element.name);
+                const draggedElement = elements.find((e) => e.name === element.name);
                 draggedElement.plottedShape.x = element.plottedShape.x;
                 draggedElement.plottedShape.y = element.plottedShape.y;
                 return true;
@@ -100,11 +98,7 @@ class App extends React.Component<{}, IOwnState> {
         });
     }
 
-    private onResize(contentRect) {
-        this.setState({ dimensions: contentRect.bounds })
-    }
-
-    render() {
+    public render() {
         return <Measure bounds={true} onResize={this.onResize}>
             {({ measureRef }) => {
                 return <div ref={measureRef} style={style} >
@@ -120,6 +114,10 @@ class App extends React.Component<{}, IOwnState> {
                 </div>;
             }}
         </Measure>;
+    }
+
+    private onResize(contentRect) {
+        this.setState({ dimensions: contentRect.bounds });
     }
 }
 

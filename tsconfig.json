@@ -22,7 +22,7 @@
         // "declaration": true,
         // "declarationDir": "./",
         "jsx": "react",
-        // "sourceMap": true,
+        "sourceMap": true,
         // "baseUrl": "./"
     },
     "include": [
