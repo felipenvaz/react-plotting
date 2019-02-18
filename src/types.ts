@@ -1,11 +1,11 @@
-import { IPosition } from "src/types/Shapes";
-import { IElement } from "src/types/Element";
+import { IPosition } from './types/Shapes';
+import { IElement } from './types/Element';
 
 export interface IMouseEvents {
     isDown: boolean;
     dragging: boolean;
     previousPos: IPosition;
-    draggedElements?: Array<IElement>;
+    draggedElements?: IElement[];
 }
 
 export interface IImage {

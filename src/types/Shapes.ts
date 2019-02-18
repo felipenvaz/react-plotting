@@ -6,9 +6,9 @@ export interface IPosition {
 export interface IContainer {
     height: number;
     width: number;
-};
+}
 
-export interface IPlottedShape extends IPosition{
+export interface IPlottedShape extends IPosition {
 
 }
 

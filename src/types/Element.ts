@@ -1,4 +1,4 @@
-import { IContainer, IPosition, ICircle, IPlottedShape, IRectangle } from "src/types/Shapes";
+import { IPlottedShape } from './Shapes';
 
 export interface IElement {
     imageUrl?: string;

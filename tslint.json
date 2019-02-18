@@ -1,12 +1,15 @@
 {
+    "extends": [
+        "tslint:latest",
+        "tslint-react",
+        "tslint-config-prettier"
+    ],
     "rules": {
-        "object-literal-key-quotes": [
-            true,
-            "consistent-as-needed"
-        ],
         "quotemark": [
             true,
-            "single"
+            "single",
+            "jsx-double",
+            "avoid-escape"
         ],
         "semicolon": [
             true,
@@ -24,6 +27,29 @@
             "check-typecast",
             "check-type-operator",
             "check-preblock"
+        ],
+        "prefer-const": [
+            true
+        ],
+        "ordered-imports": false,
+        "jsx-no-lambda": false,
+        "curly": [
+            true,
+            "ignore-same-line"
+        ],
+        "no-submodule-imports": false,
+        "no-implicit-dependencies": false,
+        "no-var-requires": false,
+        "object-literal-sort-keys": false,
+        "array-type": [
+            true,
+            "array"
+        ],
+        "no-empty-interface": false,
+        "indent": [
+            true,
+            "spaces",
+            4
         ]
     }
 }
