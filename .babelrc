@@ -13,6 +13,19 @@
         "@babel/preset-react",
         "@babel/preset-typescript"
     ],
+    "overrides": [
+        {
+            "test": "./**/*.es.ts",
+            "presets": [
+                [
+                    "@babel/preset-env",
+                    {
+                        "modules": false
+                    }
+                ],
+            ],
+        }
+    ],
     "plugins": [
         "@babel/proposal-class-properties",
         "@babel/proposal-object-rest-spread"
