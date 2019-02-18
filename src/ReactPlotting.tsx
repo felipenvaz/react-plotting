@@ -94,13 +94,14 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
         this.setState((prevState) => {
             let stateShouldChange = false;
             const newState = { images: { ...prevState.images } };
-            for (const key in newState.images) {
+            Object.keys(newState.images).forEach(key => {
                 const image = newState.images[key];
                 if (image.loaded === undefined && !image.loading) {
                     stateShouldChange = true;
                     this.setImage(image);
                 }
-            }
+            });
+
             return stateShouldChange ? newState : null;
         });
     }
@@ -212,7 +213,7 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
     }
 
     public mouseMove(event) {
-        const mousePosition = { x: event.x, y: event.y } as IPosition;
+        const mousePosition: IPosition = { x: event.x, y: event.y };
         if (this.mouseEvents.isDown) {
             if (this.props.onElementsHover) {
                 this.props.onElementsHover(mousePosition, []);
@@ -265,7 +266,7 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
     }
 
     public mouseLeave(event) {
-        const mousePosition = { x: event.x, y: event.y } as IPosition;
+        const mousePosition: IPosition = { x: event.x, y: event.y };
         this.mouseEvents.isDown = false;
         this.mouseEvents.draggedElements = null;
         if (this.props.onElementsHover) {
@@ -352,6 +353,6 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
     }
 
     public render() {
-        return <canvas style={this.canvasStyle} ref={this.setCanvasRef}></canvas>;
+        return <canvas style={this.canvasStyle} ref={this.setCanvasRef} />;
     }
 }
