@@ -1,12 +1,10 @@
-import 'core-js/es6/map';
-import 'core-js/es6/set';
-
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import 'babel-polyfill';
 import Measure from 'react-measure';
 
 import ReactPlotting from '../src';
+import { IElement } from '../src/types/Element';
+import { IPosition } from '../src/types/Shapes';
 
 const style = {
     height: '100%',
@@ -55,7 +53,7 @@ class App extends React.Component<{}, IOwnState> {
             'https://www.easycalculation.com/area/images/big-square.gif'];
         const elements = [] as IExampleElement[];
 
-        for (let i = 0; i < amount; i++) {
+        /* for (let i = 0; i < amount; i++) {
             elements.push({
                 name: `Element ${i}`,
                 imageUrl: images[Math.floor((Math.random() * 100 * images.length) % images.length)],
@@ -64,12 +62,11 @@ class App extends React.Component<{}, IOwnState> {
                     y: (Math.random() * 450),
                     height: 25,
                     width: 25,
-                    /* radius: 50 */
-                } as IRectangle, // as ICircle,
+                } as IRectangle,
 
                 elementScales: true
             });
-        }
+        } */
 
         return elements;
     }

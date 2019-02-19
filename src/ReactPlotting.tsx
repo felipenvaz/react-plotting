@@ -138,7 +138,7 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
                     scaledImageRect.width,
                     scaledImageRect.height);
 
-                this.renderElements(scaledImageRect.x, scaledImageRect.y, this.bgImageProportion * this.state.scale);
+                // this.renderElements(scaledImageRect.x, scaledImageRect.y, this.bgImageProportion * this.state.scale);
 
                 /* ctx.strokeStyle = "red";
                 ctx.strokeRect(canvasDimensions.width / 2 - 2, canvasDimensions.height / 2 - 2, 4, 4);
@@ -199,7 +199,7 @@ export default class ReactPlotting extends React.Component<IOwnProps, IOwnState>
         }
     }
 
-    public handleWheel(event) {
+    public handleWheel(event: WheelEvent) {
         this.setState((prevState) => {
             return { scale: prevState.scale * (1 - event.deltaY / 1000) };
         });

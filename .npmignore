@@ -1,6 +1,8 @@
 src
 example
+config
 .babelrc
 .gitignore
 tsconfig.json
 tslint.json
+package-lock.json
