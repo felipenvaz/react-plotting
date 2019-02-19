@@ -2,9 +2,11 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import Measure from 'react-measure';
 
-import ReactPlotting from '../src';
 import { IElement } from '../src/types/Element';
-import { IPosition } from '../src/types/Shapes';
+import ReactPlotting, {
+    IRectangle,
+    IPosition
+} from '../src';
 
 const style = {
     height: '100%',
@@ -41,58 +43,11 @@ class App extends React.Component<{}, IOwnState> {
                 width: 0,
                 height: 0
             },
-            elements: this.generateElements(1),
+            elements: this.generateElements(100),
             image: this.images[0],
             hoverText: '',
             clickText: ''
         };
-    }
-
-    public generateElements(amount) {
-        const images = [// 'http://icon-park.com/imagefiles/config_tool_icon2_blue.png',
-            'https://www.easycalculation.com/area/images/big-square.gif'];
-        const elements = [] as IExampleElement[];
-
-        /* for (let i = 0; i < amount; i++) {
-            elements.push({
-                name: `Element ${i}`,
-                imageUrl: images[Math.floor((Math.random() * 100 * images.length) % images.length)],
-                plottedShape: {
-                    x: (Math.random() * 600),
-                    y: (Math.random() * 450),
-                    height: 25,
-                    width: 25,
-                } as IRectangle,
-
-                elementScales: true
-            });
-        } */
-
-        return elements;
-    }
-
-    public onElementsHover(position: IPosition, elements: IExampleElement[]) {
-        this.setState({ hoverText: elements.reduce((acc, cur) => acc + ` ${cur.name}`, '') });
-    }
-
-    public onElementsClick(position: IPosition, elements: IExampleElement[]) {
-        this.setState({ clickText: elements.reduce((acc, cur) => acc + ` ${cur.name}`, '') });
-    }
-
-    public onElementsDragged(position: IPosition, elementsDragged: IExampleElement[]) {
-        this.setState((prevState) => {
-            const elements = [...prevState.elements];
-
-            // instead of forEach, some is used to only allow the user to drag one element at a time
-            elementsDragged.some((element) => {
-                const draggedElement = elements.find((e) => e.name === element.name);
-                draggedElement.plottedShape.x = element.plottedShape.x;
-                draggedElement.plottedShape.y = element.plottedShape.y;
-                return true;
-            });
-
-            return { elements };
-        });
     }
 
     public render() {
@@ -111,6 +66,55 @@ class App extends React.Component<{}, IOwnState> {
                 </div>;
             }}
         </Measure>;
+    }
+
+    private generateElements(amount) {
+        const images = [// 'http://icon-park.com/imagefiles/config_tool_icon2_blue.png',
+            'https://www.easycalculation.com/area/images/big-square.gif'];
+        const elements = [] as IExampleElement[];
+
+        for (let i = 0; i < amount; i++) {
+            const shape: IRectangle = {
+                x: (Math.random() * 600),
+                y: (Math.random() * 450),
+                height: 25,
+                width: 25,
+            };
+
+            elements.push({
+                name: `Element ${i}`,
+                imageUrl: images[Math.floor((Math.random() * 100 * images.length) % images.length)],
+                plottedShape: shape,
+
+                elementScales: true
+            });
+        }
+
+        return elements;
+    }
+
+    private onElementsHover(position: IPosition, elements: IExampleElement[]) {
+        this.setState({ hoverText: elements.reduce((acc, cur) => acc + ` ${cur.name}`, '') });
+    }
+
+    private onElementsClick(position: IPosition, elements: IExampleElement[]) {
+        this.setState({ clickText: elements.reduce((acc, cur) => acc + ` ${cur.name}`, '') });
+    }
+
+    private onElementsDragged(position: IPosition, elementsDragged: IExampleElement[]) {
+        this.setState((prevState) => {
+            const elements = [...prevState.elements];
+
+            // instead of forEach, some is used to only allow the user to drag one element at a time
+            elementsDragged.some((element) => {
+                const draggedElement = elements.find((e) => e.name === element.name);
+                draggedElement.plottedShape.x = element.plottedShape.x;
+                draggedElement.plottedShape.y = element.plottedShape.y;
+                return true;
+            });
+
+            return { elements };
+        });
     }
 
     private onResize(contentRect) {

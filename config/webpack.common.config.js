@@ -28,7 +28,11 @@ module.exports = {
                 extensions: ['.js', '.jsx', '.ts', '.tsx'],
                 mainFiles: ['index']
             },
-            plugins: []
+            plugins: [
+                new webpack.SourceMapDevToolPlugin({
+                    filename: '[file].map',
+                })
+            ]
         };
 
         return config;

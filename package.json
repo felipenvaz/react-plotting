@@ -23,6 +23,9 @@
         "react": "*",
         "react-dom": "*"
     },
+    "dependencies": {
+        "d3-polygon": "^1.0.5"
+    },
     "devDependencies": {
         "@babel/core": "^7.3.3",
         "@babel/plugin-proposal-object-rest-spread": "^7.3.2",
