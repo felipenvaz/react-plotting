@@ -3,8 +3,8 @@ import Point from 'src/types/Point';
 
 export default class Polygon {
     private points: Point[];
-    constructor(points: Point[]) {
-        this.points = d3.polygonHull(points);
+    constructor(public color: string, points: Point[]) {
+        this.points = points; // d3.polygonHull(points);
     }
 
     public getPoints() {

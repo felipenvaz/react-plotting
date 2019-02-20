@@ -1,4 +1,4 @@
-import { IElement } from './types/Element';
+import { IElement } from './types/IElement';
 import { IPosition } from './types/Shapes';
 
 export interface IMouseEvents {

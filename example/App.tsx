@@ -4,9 +4,10 @@ import Measure from 'react-measure';
 
 import ReactPlotting, {
     IPosition,
-    IRectangle
+    IRectangle,
+    Polygon
 } from '../src';
-import { IElement } from '../src/types/Element';
+import { IElement } from '../src/types/IElement';
 
 const style: React.CSSProperties = {
     height: '100%',
@@ -22,6 +23,7 @@ export interface IExampleElement extends IElement {
 
 export interface IOwnState {
     elements: IExampleElement[];
+    polygons: Polygon[];
     dimensions: { width: number; height: number };
     image: string;
     hoverText: string;
@@ -46,7 +48,19 @@ class App extends React.Component<{}, IOwnState> {
                 width: 0,
                 height: 0
             },
-            elements: this.generateElements(100),
+            elements: this.generateElements(5),
+            polygons: [
+                new Polygon('rgba(255, 0, 0, 0.5)', [
+                    [50, 100],
+                    [100, 100],
+                    [100, 50],
+                    [200, 50],
+                    [200, 100],
+                    [250, 100],
+                    [200, 200],
+                    [100, 200],
+                ])
+            ],
             image: this.images[0],
             hoverText: '',
             clickText: ''
@@ -54,6 +68,11 @@ class App extends React.Component<{}, IOwnState> {
     }
 
     public render() {
+        const {
+            polygons,
+            elements
+        } = this.state;
+
         return (
             <div style={style}>
                 <Measure bounds={true} onResize={this.onResize}>
@@ -64,7 +83,8 @@ class App extends React.Component<{}, IOwnState> {
                             <ReactPlotting imageUrl={this.state.image}
                                 height={this.state.dimensions.height}
                                 width={this.state.dimensions.width}
-                                elements={this.state.elements}
+                                elements={elements}
+                                polygons={polygons}
                                 onElementsHover={this.onElementsHover}
                                 onElementsClick={this.onElementsClick}
                                 onElementsDragged={this.onElementsDragged} />

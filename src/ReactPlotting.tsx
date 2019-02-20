@@ -1,10 +1,13 @@
 import * as React from 'react';
+import { defaultMemoize } from 'reselect';
+import Polygon from './classes/Polygon';
 import {
     IImage,
     IImageHash,
     IMouseEvents
 } from './types';
-import { IElement } from './types/Element';
+import { IElement } from './types/IElement';
+import Point from './types/Point';
 import {
     IPlottedShape,
     IPosition,
@@ -17,8 +20,7 @@ import {
     calculateScaledPosition
 } from './utils/calcUtils';
 import {
-    isHoveringPlottedShape,
-    isRectangle
+    isHoveringPlottedShape
 } from './utils/shapeUtils';
 
 export interface IReactPlottingProps {
@@ -26,6 +28,7 @@ export interface IReactPlottingProps {
     height: number;
     imageUrl: string;
     elements?: IElement[];
+    polygons?: Polygon[];
     onElementsHover?: (position: IPosition, elements: IElement[]) => void;
     onElementsClick?: (position: IPosition, elements: IElement[]) => void;
     onElementsDragged?: (position: IPosition, elements: IElement[]) => void;
@@ -35,11 +38,12 @@ export interface IReactPlottingState {
     scale: number;
     displacement: IPosition;
     images: IImageHash;
+    mouseEvents: IMouseEvents;
 }
 
 export default class ReactPlotting extends React.PureComponent<IReactPlottingProps, IReactPlottingState> {
-    public canvasRef: HTMLCanvasElement;
-    public mouseEvents: IMouseEvents = {
+    private canvasRef: HTMLCanvasElement;
+    private mouseEvents: IMouseEvents = {
         isDown: false,
         dragging: false,
         previousPos: {
@@ -47,11 +51,17 @@ export default class ReactPlotting extends React.PureComponent<IReactPlottingPro
             y: 0
         }
     };
-    public bgImageProportion = 1;
-    public renderedElements: { plottedShape: IPlottedShape; element: IElement }[] = [];
-    public canvasStyle: React.CSSProperties = {
+    private bgImageProportion = 1;
+    private renderedElements: { plottedShape: IPlottedShape; element: IElement }[] = [];
+    private canvasStyle: React.CSSProperties = {
         display: 'block'
     };
+    private getProportionalPolygons = defaultMemoize((polygons: Polygon[], bgX: number, bgY: number, scale: number) => {
+        return polygons.map(polygon => {
+            const points = polygon.getPoints().map<Point>(point => ([bgX + (point[0] * scale), bgY + (point[1] * scale)]));
+            return new Polygon(polygon.color, points);
+        });
+    });
 
     constructor(props) {
         super(props);
@@ -68,6 +78,14 @@ export default class ReactPlotting extends React.PureComponent<IReactPlottingPro
             displacement: {
                 x: 0,
                 y: 0
+            },
+            mouseEvents: {
+                isDown: false,
+                dragging: false,
+                previousPos: {
+                    x: 0,
+                    y: 0
+                }
             }
         };
 
@@ -226,7 +244,7 @@ export default class ReactPlotting extends React.PureComponent<IReactPlottingPro
                     scaledImageRect.height);
 
                 this.renderElements(scaledImageRect.x, scaledImageRect.y, this.bgImageProportion * this.state.scale);
-
+                this.renderPolygons(scaledImageRect.x, scaledImageRect.y, this.bgImageProportion * this.state.scale);
                 /* ctx.strokeStyle = "red";
                 ctx.strokeRect(canvasDimensions.width / 2 - 2, canvasDimensions.height / 2 - 2, 4, 4);
                 ctx.strokeRect(scaledImageRect.x,
@@ -237,17 +255,42 @@ export default class ReactPlotting extends React.PureComponent<IReactPlottingPro
         }
     }
 
-    private renderElements(bgX, bgY, scale) {
+    private renderPolygons(bgX: number, bgY: number, scale: number) {
+        if (this.canvasRef && this.props.polygons) {
+            const canvas = this.canvasRef;
+            const ctx = canvas.getContext('2d');
+            const polygons = this.getProportionalPolygons(this.props.polygons, bgX, bgY, scale);
+            for (const polygon of polygons) {
+                ctx.strokeStyle = polygon.color;
+                ctx.fillStyle = polygon.color;
+                ctx.beginPath();
+                const points = polygon.getPoints();
+                ctx.moveTo(points[0][0], points[0][1]);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i][0], points[i][1]);
+                }
+
+                ctx.closePath();
+                const {
+                    mouseEvents
+                } = this.state;
+                if (!mouseEvents.dragging && !mouseEvents.isDown && polygon.contains([mouseEvents.previousPos.x, mouseEvents.previousPos.y])) {
+                    ctx.fill();
+                } else {
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    private renderElements(bgX: number, bgY: number, scale: number) {
         this.renderedElements = [];
         if (this.canvasRef && this.props.elements) {
             const canvas = this.canvasRef;
             const ctx = canvas.getContext('2d');
             this.props.elements.forEach((element) => {
                 if (this.isImageLoaded(element.imageUrl)) {
-                    let plottedRect;
-                    if (isRectangle(element.plottedShape)) {
-                        plottedRect = element.plottedShape as IRectangle;
-                    }
+                    const plottedRect = element.plottedShape;
                     let width = plottedRect.width;
                     let height = plottedRect.height;
                     if (element.elementScales) {
@@ -297,7 +340,6 @@ export default class ReactPlotting extends React.PureComponent<IReactPlottingPro
 
     private onMouseMove(event: React.MouseEvent<HTMLCanvasElement>) {
         const mousePosition = this.getMousePosition(event);
-
         if (this.mouseEvents.isDown) {
             if (this.props.onElementsHover) {
                 this.props.onElementsHover(mousePosition, []);

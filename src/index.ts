@@ -7,3 +7,6 @@ export {
     IRectangle,
     IPosition
 } from './types/Shapes';
+export {
+
+} from './types';
