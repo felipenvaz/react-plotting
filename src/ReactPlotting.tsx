@@ -97,11 +97,11 @@ export default class ReactPlotting extends React.PureComponent<IReactPlottingPro
 
     public componentWillReceiveProps(nextProps: IReactPlottingProps) {
         this.setState(prevState => {
-            let newState: any = null;
+            let newState: Pick<IReactPlottingState, 'images' | 'displacement'> = null;
             if (nextProps.imageUrl !== this.props.imageUrl) {
                 newState = {
                     images: {
-                        ...prevState
+                        ...prevState.images
                     },
                     displacement: { x: 0, y: 0 }
                 };
@@ -245,19 +245,9 @@ export default class ReactPlotting extends React.PureComponent<IReactPlottingPro
             this.props.elements.forEach((element) => {
                 if (this.isImageLoaded(element.imageUrl)) {
                     let plottedRect;
-                    // let elementIsCircle = false;
                     if (isRectangle(element.plottedShape)) {
                         plottedRect = element.plottedShape as IRectangle;
-                    }/*  else if (isCircle(element.plottedShape)) {
-                        elementIsCircle = true;
-                        let plottedCircle = element.plottedShape as ICircle;
-                        plottedRect = {
-                            x: plottedCircle.x,
-                            y: plottedCircle.y,
-                            width: plottedCircle.radius / 2,
-                            height: plottedCircle.radius / 2
-                        } as IRectangle;
-                    } */
+                    }
                     let width = plottedRect.width;
                     let height = plottedRect.height;
                     if (element.elementScales) {
