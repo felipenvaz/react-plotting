@@ -1,5 +1,6 @@
 const common = require('./webpack.common.config');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const webpack = require('webpack');
 
 function createExternals(packageNames) {
     const externals = {};
@@ -26,7 +27,14 @@ module.exports = new function () {
         },
         plugins: [
             ...common.config.plugins,
-            new CleanWebpackPlugin(['dist']),
+            new webpack.SourceMapDevToolPlugin({
+                filename: '[file].map',
+                exclude: [/node_modules/],
+                test: /\.(js|css|tsx?)$/
+            }),
+            new CleanWebpackPlugin([`dist`], {
+                root: common.rootDir
+            }),
         ],
         externals: createExternals([
             'react',

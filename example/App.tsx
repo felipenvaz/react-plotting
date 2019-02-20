@@ -2,15 +2,18 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import Measure from 'react-measure';
 
-import { IElement } from '../src/types/Element';
 import ReactPlotting, {
-    IRectangle,
-    IPosition
+    IPosition,
+    IRectangle
 } from '../src';
+import { IElement } from '../src/types/Element';
 
-const style = {
+const style: React.CSSProperties = {
     height: '100%',
-    width: '100%'
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
 };
 
 export interface IExampleElement extends IElement {
@@ -51,21 +54,25 @@ class App extends React.Component<{}, IOwnState> {
     }
 
     public render() {
-        return <Measure bounds={true} onResize={this.onResize}>
-            {({ measureRef }) => {
-                return <div ref={measureRef} style={style} >
-                    <div style={{ position: 'fixed', top: '5px', left: '5px' }}>{this.state.hoverText}</div>
-                    <div style={{ position: 'fixed', top: '20px', left: '5px' }}>{this.state.clickText}</div>
-                    <ReactPlotting imageUrl={this.state.image}
-                        height={this.state.dimensions.height}
-                        width={this.state.dimensions.width}
-                        elements={this.state.elements}
-                        onElementsHover={this.onElementsHover}
-                        onElementsClick={this.onElementsClick}
-                        onElementsDragged={this.onElementsDragged} />
-                </div>;
-            }}
-        </Measure>;
+        return (
+            <div style={style}>
+                <Measure bounds={true} onResize={this.onResize}>
+                    {({ measureRef }) => {
+                        return <div ref={measureRef} style={{ height: '80%', width: '80%', border: '1px solid gray' }} >
+                            <div style={{ position: 'fixed', top: '5px', left: '5px' }}>{this.state.hoverText}</div>
+                            <div style={{ position: 'fixed', top: '20px', left: '5px' }}>{this.state.clickText}</div>
+                            <ReactPlotting imageUrl={this.state.image}
+                                height={this.state.dimensions.height}
+                                width={this.state.dimensions.width}
+                                elements={this.state.elements}
+                                onElementsHover={this.onElementsHover}
+                                onElementsClick={this.onElementsClick}
+                                onElementsDragged={this.onElementsDragged} />
+                        </div>;
+                    }}
+                </Measure>
+            </div>
+        );
     }
 
     private generateElements(amount) {

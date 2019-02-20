@@ -31,15 +31,12 @@
         "prefer-const": [
             true
         ],
-        "ordered-imports": false,
-        "jsx-no-lambda": false,
         "curly": [
             true,
             "ignore-same-line"
         ],
         "no-submodule-imports": false,
         "no-implicit-dependencies": false,
-        "no-var-requires": false,
         "object-literal-sort-keys": false,
         "array-type": [
             true,

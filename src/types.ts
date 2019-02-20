@@ -1,5 +1,5 @@
-import { IPosition } from './types/Shapes';
 import { IElement } from './types/Element';
+import { IPosition } from './types/Shapes';
 
 export interface IMouseEvents {
     isDown: boolean;

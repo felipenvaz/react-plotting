@@ -1,4 +1,3 @@
-const webpack = require('webpack');
 const path = require('path');
 const rootDir = path.resolve(__dirname, '../');
 
@@ -13,25 +12,19 @@ module.exports = {
                         test: /\.tsx?$/,
                         use: [
                             'babel-loader',
-                            'ts-loader'
+                            'ts-loader',
+                            'tslint-loader'
                         ],
                         exclude: /node_modules/
                     }
                 ],
-            },
-            optimization: {
-                sideEffects: true,
-                providedExports: true,
-                usedExports: true
             },
             resolve: {
                 extensions: ['.js', '.jsx', '.ts', '.tsx'],
                 mainFiles: ['index']
             },
             plugins: [
-                new webpack.SourceMapDevToolPlugin({
-                    filename: '[file].map',
-                })
+
             ]
         };
 

@@ -1,4 +1,7 @@
-import { IContainer, IRectangle } from '../types/Shapes';
+import {
+    IContainer,
+    IRectangle
+} from '../types/Shapes';
 
 export const calculateProportion = (outerContainer: IContainer, container: IContainer) => {
     const widthProportion = outerContainer.width / container.width;

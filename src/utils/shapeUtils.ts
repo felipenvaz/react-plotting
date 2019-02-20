@@ -1,4 +1,9 @@
-import { IPlottedShape, IRectangle, IPosition, ICircle } from '../types/Shapes';
+import {
+    ICircle,
+    IPlottedShape,
+    IPosition,
+    IRectangle
+} from '../types/Shapes';
 
 const circleSample: ICircle = { x: 0, y: 0, radius: 0 };
 const rectangleSample: IRectangle = { x: 0, y: 0, height: 0, width: 0 };
